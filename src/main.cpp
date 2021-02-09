@@ -20,6 +20,7 @@ std::string read_file(const std::string& fp)
 	return ss.str();
 }
 
+
 int main(int argc, char** argv)
 {
 	if (argc < 2)
@@ -41,7 +42,6 @@ int main(int argc, char** argv)
 	{
 		std::cout << ex.what() << "\n";
 	}
-
 
 	return 0;
 }

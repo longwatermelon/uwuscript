@@ -74,6 +74,8 @@ std::shared_ptr<AST> Parser::parse_id()
 	if (current_token.value == "PLS")
 		return parse_pls_request();
 
+	return parse_variable();
+
 	return nullptr;
 }
 
@@ -82,10 +84,10 @@ std::shared_ptr<AST> Parser::parse_variable_definition()
 	const auto ret = std::make_shared<AST>(AstType::AST_VARIABLE_DEFINITION);
 
 	eat(TokenType::TOKEN_ID, "DEFINE");
-
-	ret->variable_definition_name = current_token.value;
-
 	eat(TokenType::TOKEN_ID); // variable
+
+	ret->variable_definition_name = prev_token.value;
+
 	eat(TokenType::TOKEN_ID, "AS");
 
 	ret->variable_definition_value = parse_expr();
@@ -94,6 +96,17 @@ std::shared_ptr<AST> Parser::parse_variable_definition()
 	eat(TokenType::TOKEN_ID, "THANKS");
 
 	return ret;
+}
+
+
+std::shared_ptr<AST> Parser::parse_variable()
+{
+	const auto ast = std::make_shared<AST>(AstType::AST_VARIABLE);
+
+	ast->variable_name = current_token.value;
+	eat(TokenType::TOKEN_ID);
+
+	return ast;
 }
 
 

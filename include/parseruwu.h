@@ -23,6 +23,7 @@ public:
 	std::shared_ptr<AST> parse_id();
 
 	std::shared_ptr<AST> parse_variable_definition();
+	std::shared_ptr<AST> parse_variable();
 
 	std::shared_ptr<AST> parse_function_call();
 
