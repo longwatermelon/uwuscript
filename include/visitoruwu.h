@@ -20,6 +20,7 @@ public:
 	void modify_variable(std::shared_ptr<AST> variable, std::shared_ptr<AST> node);
 	std::shared_ptr<AST> goto_root_of_variable(std::shared_ptr<AST> variable);
 	std::shared_ptr<AST> visit_var(std::shared_ptr<AST> node);
+	void delete_var(std::shared_ptr<AST> variable);
 
 	std::shared_ptr<AST> visit_compound(std::shared_ptr<AST> node);
 

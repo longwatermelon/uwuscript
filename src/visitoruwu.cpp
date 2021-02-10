@@ -1,6 +1,9 @@
 #include "../include/visitoruwu.h"
 #include <sstream>
 #include <iostream>
+#include <iterator>
+#include <cstdlib>
+#include <algorithm>
 
 
 std::shared_ptr<AST> Visitor::builtin_print(std::vector<std::shared_ptr<AST>> args)
@@ -109,6 +112,18 @@ std::shared_ptr<AST> Visitor::visit_var(std::shared_ptr<AST> node)
 }
 
 
+void Visitor::delete_var(std::shared_ptr<AST> variable)
+{
+	std::shared_ptr<AST> ast = visit_var(variable);
+	std::vector<std::shared_ptr<AST>>::iterator iter = std::find(variable_defs.begin(), variable_defs.end(), ast);
+
+	if (iter != variable_defs.end())
+		variable_defs.erase(variable_defs.begin() + std::distance(variable_defs.begin(), iter));
+	else
+		variable_defs.erase(variable_defs.begin());
+}
+
+
 std::shared_ptr<AST> Visitor::visit_compound(std::shared_ptr<AST> node)
 {
 	for (auto& item : node->compound_value)
@@ -135,6 +150,7 @@ std::shared_ptr<AST> Visitor::visit_function_call(std::shared_ptr<AST> node)
 
 
 	std::shared_ptr<AST> ast;
+	std::vector<std::shared_ptr<AST>> args;
 
 	if (node->function_call_args.size() > 0 && node->function_call_args[0]->type != AstType::AST_NOOP)
 	{
@@ -146,6 +162,7 @@ std::shared_ptr<AST> Visitor::visit_function_call(std::shared_ptr<AST> node)
 			vardef->variable_definition_name = func_def->function_definition_params[i]->variable_name;
 
 			visit_variable_definition(vardef);
+			args.push_back(vardef);
 		}
 
 		for (auto& item : func_def->function_definition_body)
@@ -156,6 +173,9 @@ std::shared_ptr<AST> Visitor::visit_function_call(std::shared_ptr<AST> node)
 		for (auto& item : func_def->function_definition_body)
 			ast = visit(item);
 	}
+
+	for (std::shared_ptr<AST>& variable : args)
+		delete_var(variable);
 
 	return ast;
 }
