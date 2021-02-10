@@ -1,4 +1,4 @@
-#include "..\include\parseruwu.h"
+#include "../include/parseruwu.h"
 #include <map>
 #include <sstream>
 
