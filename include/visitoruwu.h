@@ -9,6 +9,8 @@ class Visitor
 {
 public:
 	std::vector<std::shared_ptr<AST>> variable_defs;
+	std::vector<std::shared_ptr<AST>> function_defs;
+
 
 	std::shared_ptr<AST> builtin_print(std::vector<std::shared_ptr<AST>> args);
 
@@ -22,4 +24,6 @@ public:
 	std::shared_ptr<AST> visit_compound(std::shared_ptr<AST> node);
 
 	std::shared_ptr<AST> visit_function_call(std::shared_ptr<AST> node);
+	std::shared_ptr<AST> visit_function_definition(std::shared_ptr<AST> node);
+	std::shared_ptr<AST> get_function(const std::string& name);
 };

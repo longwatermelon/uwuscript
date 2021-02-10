@@ -18,7 +18,7 @@ void Parser::eat(TokenType token, const std::string& str)
 		if (current_token.value != str && str != "")
 		{
 			std::stringstream ss;
-			ss << "lel breh stupid idoit cant even use proper grammar UwU\nexpected: " << str;
+			ss << "lel breh stupid idoit cant even use proper grammar UwU\nwtf is " << str;
 			throw std::runtime_error(ss.str());
 		}
 
@@ -39,6 +39,23 @@ void Parser::eat(TokenType token, const std::string& str)
 		std::stringstream ss;
 		ss << "lmfapoooooooooo get a load of this guy got an error on line " << lexer.line_num << " what a stupid idot XD\n";
 		throw std::runtime_error(ss.str());
+	}
+}
+
+
+void Parser::eat_multiple(const std::vector<std::string>& strings)
+{
+	for (const std::string& item : strings)
+	{
+		if (current_token.value != item)
+		{
+			std::stringstream ss;
+			ss << "lel breh stupid idoit cant even use proper grammar UwU\nwtf is " << item;
+			throw std::runtime_error(ss.str());
+		}
+
+		prev_token = current_token;
+		current_token = lexer.get_next_token();
 	}
 }
 
@@ -119,10 +136,21 @@ std::shared_ptr<AST> Parser::parse_function_call()
 
 	eat(TokenType::TOKEN_ID);
 	eat(TokenType::TOKEN_ID, "WITH");
-	eat(TokenType::TOKEN_ID, "ARGUMENTS");
-	
-	std::shared_ptr<AST> expr = parse_expr();
-	function_call->function_call_args.push_back(expr);
+
+	std::shared_ptr<AST> expr;
+
+	if (current_token.value == "ARGUMENTS")
+	{
+		eat(TokenType::TOKEN_ID, "ARGUMENTS");
+
+		expr = parse_expr();
+		function_call->function_call_args.push_back(expr);
+	}
+	else
+	{
+		eat_multiple({ "NO", "ARGUMENTS" });
+	}
+
 
 	while (current_token.value == "AND")
 	{
@@ -139,6 +167,54 @@ std::shared_ptr<AST> Parser::parse_function_call()
 }
 
 
+std::shared_ptr<AST> Parser::parse_function_definition()
+{
+	eat_multiple({ "MAKE", "A", "FUNCTION", "CALLED" });
+
+	const auto ast = std::make_shared<AST>(AstType::AST_FUNCTION_DEFINITION);
+
+	ast->function_definition_name = current_token.value;
+
+	eat(TokenType::TOKEN_ID);
+	eat_multiple({ "FOR", "ME", "PLS", "UWU", "FUNCTION", "PARAMS", "ARE" });
+
+	if (current_token.value != "NONE")
+	{
+		std::shared_ptr<AST> arg = parse_variable();
+		ast->function_definition_params.push_back(arg);
+
+		while (current_token.value == "AND")
+		{
+			eat(TokenType::TOKEN_ID, "AND");
+
+			arg = parse_variable();
+			ast->function_definition_params.push_back(arg);
+		}
+	}
+	else
+	{
+		eat(TokenType::TOKEN_ID, "NONE");
+	}
+
+	eat_multiple({ "HERE", "IS", "FUNCTION", "BODY" });
+
+	//ast->function_definition_body = parse_statements();
+	while (current_token.value != "END")
+	{
+		auto expr = parse_expr();
+		if (expr == nullptr) break;
+
+		init_error_values(expr);
+
+		ast->function_definition_body.push_back(expr);
+	}
+
+	eat_multiple({ "END", "OF", "FUNCTION", "LEL", "UWU" });
+
+	return ast;
+}
+
+
 std::shared_ptr<AST> Parser::parse_pls_request()
 {
 	eat(TokenType::TOKEN_ID, "PLS");
@@ -147,7 +223,12 @@ std::shared_ptr<AST> Parser::parse_pls_request()
 		return parse_variable_definition();
 	if (current_token.value == "CALL")
 		return parse_function_call();
+	if (current_token.value == "MAKE")
+		return parse_function_definition();
 
+	std::stringstream ss;
+	ss << "lel noni wtf is this UwU XD on line " << lexer.line_num << " xdddddddddddddddddddddddddddd idot doent know how to use grammar XD\n";
+	throw std::runtime_error(ss.str());
 
 	return nullptr;
 }
@@ -171,6 +252,7 @@ std::shared_ptr<AST> Parser::parse_statements()
 	const auto ast = std::make_shared<AST>(AstType::AST_COMPOUND);
 
 	auto expr = parse_expr();
+	init_error_values(expr);
 	ast->compound_value.push_back(expr);
 
 	while (lexer.idx < lexer.contents.size())
@@ -179,8 +261,16 @@ std::shared_ptr<AST> Parser::parse_statements()
 
 		if (expr == nullptr) break;
 
+		init_error_values(expr);
 		ast->compound_value.push_back(expr);
 	}
 
 	return ast;
+}
+
+
+void Parser::init_error_values(std::shared_ptr<AST> node)
+{
+	node->error_index = lexer.idx;
+	node->error_line_num = lexer.line_num;
 }

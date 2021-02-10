@@ -11,6 +11,7 @@ enum class AstType
 	AST_INT,
 	AST_STRING,
 	AST_FUNCTION_CALL,
+	AST_FUNCTION_DEFINITION,
 	AST_COMPOUND,
 	AST_NOOP
 };
@@ -40,6 +41,15 @@ public:
 	// function call
 	std::string function_call_name;
 	std::vector<std::shared_ptr<AST>> function_call_args;
+
+	// function definition
+	std::string function_definition_name;
+	std::vector<std::shared_ptr<AST>> function_definition_body;
+	std::vector<std::shared_ptr<AST>> function_definition_params;
+
+	// error fields
+	size_t error_index{ 0 };
+	size_t error_line_num{ 0 };
 
 
 	AST(AstType type)

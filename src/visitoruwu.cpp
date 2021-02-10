@@ -21,7 +21,7 @@ std::shared_ptr<AST> Visitor::builtin_print(std::vector<std::shared_ptr<AST>> ar
 			case AstType::AST_INT: std::cout << temp->int_value << " "; break;
 			}
 		}
-		default: std::cout << "breh OwO gonna haf to reject this variable i cant print it :pleading_face:\n"; break;
+		default: std::cout << "breh OwO noni wtf is this XD line " << ast->error_line_num; break;
 		}
 	}
 
@@ -41,11 +41,12 @@ std::shared_ptr<AST> Visitor::visit(std::shared_ptr<AST> node)
 	case AstType::AST_FUNCTION_CALL: return visit_function_call(node);
 	case AstType::AST_VARIABLE: return visit_var(node);
 	case AstType::AST_COMPOUND: return visit_compound(node);
+	case AstType::AST_FUNCTION_DEFINITION: return visit_function_definition(node);
 	case AstType::AST_NOOP: return node;
 	}
 
 	std::stringstream ss;
-	ss << "lel BREH i dont recognize wtf is hits UwU\n";
+	ss << "lel BREH i dont recognize wtf is hits UwU\nline " << node->error_line_num << " wtf?\n";
 	throw std::runtime_error(ss.str());
 
 	return nullptr;
@@ -94,15 +95,17 @@ std::shared_ptr<AST> Visitor::visit_var(std::shared_ptr<AST> node)
 {
 	for (auto& def : variable_defs)
 	{
-		if (def->variable_definition_name == node->variable_name || def->variable_definition_name == node->variable_name)
+		if (def->variable_definition_name == node->variable_name)
 		{
 			return visit(def->variable_definition_value);
 		}
 	}
 
 	std::stringstream ss;
-	ss << "lmfpao what stpid idiot dint even define variable lel xddddddddddddddd\n";
+	ss << "lmfpao what stpid idiot dint even define variable lel xddddddddddddddd line " << node->error_line_num << " what tje frick is " << node->variable_name << "\n";
 	throw std::runtime_error(ss.str());
+
+	return nullptr;
 }
 
 
@@ -120,5 +123,63 @@ std::shared_ptr<AST> Visitor::visit_function_call(std::shared_ptr<AST> node)
 	if (node->function_call_name == "UWUPRINT")
 		return builtin_print(node->function_call_args);
 
-	throw std::runtime_error("u trying to brak me or sumtg? :angry: thats not a vaild function");
+	std::shared_ptr<AST> func_def = get_function(node->function_call_name);
+
+	if (func_def->function_definition_params.size() != node->function_call_args.size())
+	{
+		std::stringstream ss;
+		ss << "breh your such a coding novice lel XD didnt even supply the right amount of aergewments lel idk how to spell it XD on line "
+			<< node->error_line_num << "\n";
+		throw std::runtime_error(ss.str());
+	}
+
+
+	std::shared_ptr<AST> ast;
+
+	if (node->function_call_args.size() > 0 && node->function_call_args[0]->type != AstType::AST_NOOP)
+	{
+		for (int i = 0; i < node->function_call_args.size(); ++i)
+		{
+			const auto vardef = std::make_shared<AST>(AstType::AST_VARIABLE_DEFINITION);
+
+			vardef->variable_definition_value = node->function_call_args[i];
+			vardef->variable_definition_name = func_def->function_definition_params[i]->variable_name;
+
+			visit_variable_definition(vardef);
+		}
+
+		for (auto& item : func_def->function_definition_body)
+			const auto ast = visit(item);
+	}
+	else
+	{
+		for (auto& item : func_def->function_definition_body)
+			ast = visit(item);
+	}
+
+	return ast;
+}
+
+
+std::shared_ptr<AST> Visitor::visit_function_definition(std::shared_ptr<AST> node)
+{
+	function_defs.push_back(node);
+
+	return node;
+}
+
+
+std::shared_ptr<AST> Visitor::get_function(const std::string& name)
+{
+	for (auto& item : function_defs)
+	{
+		if (item->function_definition_name == name)
+			return item;
+	}
+
+	std::stringstream ss;
+	ss << "LEL stupid idoti dont invalid function LMFAPOOOOOOOOOO XDDDDDDDD\n";
+	throw std::runtime_error(ss.str());
+
+	return nullptr;
 }

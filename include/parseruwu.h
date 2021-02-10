@@ -15,6 +15,7 @@ public:
 	Parser(const std::string& contents);
 
 	void eat(TokenType token, const std::string& str = "");
+	void eat_multiple(const std::vector<std::string>& strings);
 
 	std::shared_ptr<AST> parse();
 
@@ -26,10 +27,13 @@ public:
 	std::shared_ptr<AST> parse_variable();
 
 	std::shared_ptr<AST> parse_function_call();
+	std::shared_ptr<AST> parse_function_definition();
 
 	std::shared_ptr<AST> parse_pls_request();
 
 	std::shared_ptr<AST> parse_expr();
 
 	std::shared_ptr<AST> parse_statements();
+
+	void init_error_values(std::shared_ptr<AST> node);
 };
